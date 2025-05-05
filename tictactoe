@@ -1,0 +1,107 @@
+import tkinter as tk
+from tkinter import messagebox
+
+# Main window
+window = tk.Tk()
+window.title("Tic Tac Toe")
+window.resizable(False, False)
+
+# Global variables
+current_player = "X"
+player1_name = ""
+player2_name = ""
+board = [["" for _ in range(3)] for _ in range(3)]
+
+def start_game():
+    global player1_name, player2_name, current_player
+
+    player1_name = entry_player1.get().strip() or "Player 1"
+    player2_name = entry_player2.get().strip() or "Player 2"
+    current_player = "X"
+    label_turn.config(text=f"{player1_name}'s Turn (X)")
+
+    name_frame.pack_forget()
+    game_frame.pack()
+
+def check_winner():
+    # Rows, columns, diagonals
+    for row in board:
+        if row[0] == row[1] == row[2] != "":
+            return True
+
+    for col in range(3):
+        if board[0][col] == board[1][col] == board[2][col] != "":
+            return True
+
+    if board[0][0] == board[1][1] == board[2][2] != "":
+        return True
+
+    if board[0][2] == board[1][1] == board[2][0] != "":
+        return True
+
+    return False
+
+def is_draw():
+    return all(cell != "" for row in board for cell in row)
+
+def button_click(row, col):
+    global current_player
+
+    if board[row][col] == "":
+        board[row][col] = current_player
+        buttons[row][col].config(text=current_player, state="disabled")
+
+        if check_winner():
+            winner_name = player1_name if current_player == "X" else player2_name
+            messagebox.showinfo("Game Over", f"{winner_name} wins!")
+            reset_game()
+        elif is_draw():
+            messagebox.showinfo("Game Over", "It's a draw!")
+            reset_game()
+        else:
+            current_player = "O" if current_player == "X" else "X"
+            name = player1_name if current_player == "X" else player2_name
+            label_turn.config(text=f"{name}'s Turn ({current_player})")
+
+def reset_game():
+    global board, current_player
+    board = [["" for _ in range(3)] for _ in range(3)]
+    for row in range(3):
+        for col in range(3):
+            buttons[row][col].config(text="", state="normal")
+    current_player = "X"
+    label_turn.config(text=f"{player1_name}'s Turn (X)")
+
+# === GUI ===
+
+# Player name input frame
+name_frame = tk.Frame(window, padx=10, pady=10)
+tk.Label(name_frame, text="Enter Player Names", font=("Arial", 16)).pack(pady=5)
+
+tk.Label(name_frame, text="Player 1 (X):").pack()
+entry_player1 = tk.Entry(name_frame)
+entry_player1.pack()
+
+tk.Label(name_frame, text="Player 2 (O):").pack()
+entry_player2 = tk.Entry(name_frame)
+entry_player2.pack()
+
+tk.Button(name_frame, text="Start Game", command=start_game).pack(pady=10)
+name_frame.pack()
+
+# Game frame
+game_frame = tk.Frame(window, padx=10, pady=10)
+label_turn = tk.Label(game_frame, text="", font=("Arial", 16))
+label_turn.grid(row=0, column=0, columnspan=3, pady=10)
+
+buttons = [[None for _ in range(3)] for _ in range(3)]
+for row in range(3):
+    for col in range(3):
+        buttons[row][col] = tk.Button(
+            game_frame, text="", font=("Arial", 32), width=5, height=2,
+            command=lambda r=row, c=col: button_click(r, c)
+        )
+        buttons[row][col].grid(row=row + 1, column=col)
+
+# Start app
+window.mainloop()
